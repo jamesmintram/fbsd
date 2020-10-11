@@ -114,6 +114,7 @@ _LIBRARIES=	\
 		execinfo \
 		fetch \
 		figpar \
+		fstyp \
 		geom \
 		gnuregex \
 		gpio \
@@ -260,6 +261,7 @@ _DP_edit=	ncursesw
 .if ${MK_OPENSSL} != "no"
 _DP_bsnmp=	crypto
 .endif
+_DP_fstyp=  geom md ufs
 _DP_geom=	bsdxml sbuf
 _DP_cam=	sbuf
 _DP_kvm=	elf

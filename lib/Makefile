@@ -53,6 +53,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libexpat \
 	libfetch \
 	libfigpar \
+	libfstyp \
 	libgcc_eh \
 	libgcc_s \
 	libgeom \

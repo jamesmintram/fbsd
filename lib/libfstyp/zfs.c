@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2015 Allan Jude <allanjude@FreeBSD.org>
- * All rights reserved.
+ * Copyright (c) 2015 Xin LI <delphij@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,45 +27,52 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include <sys/disk.h>
 #include <sys/types.h>
+#include <cddl/compat/opensolaris/sys/types.h>
+#include <sys/time.h>
+#include <cddl/compat/opensolaris/sys/time.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-#include <geom/eli/g_eli.h>
+#include <libnvpair.h>
+#include <sys/vdev_impl.h>
 
 #include "fstyp.h"
+#include "fstyp_p.h"
 
 int
-fstyp_geli(FILE *fp, char *label __unused, size_t labelsize __unused)
+fstyp_zfs(FILE *fp, char *label, size_t labelsize)
 {
-	int error;
-	off_t mediasize;
-	u_int sectorsize;
-	struct g_eli_metadata md;
-	u_char *buf;
+	vdev_label_t *vdev_label = NULL;
+	vdev_phys_t *vdev_phys;
+	char *zpool_name = NULL;
+	nvlist_t *config = NULL;
+	int err = 0;
 
-	error = ioctl(fileno(fp), DIOCGMEDIASIZE, &mediasize);
-	if (error != 0)
+	/*
+	 * Read in the first ZFS vdev label ("L0"), located at the beginning
+	 * of the vdev and extract the pool name from it.
+	 *
+	 * TODO: the checksum of label should be validated.
+	 */
+	vdev_label = (vdev_label_t *)read_buf(fp, 0, sizeof(*vdev_label));
+	if (vdev_label == NULL)
 		return (1);
-	error = ioctl(fileno(fp), DIOCGSECTORSIZE, &sectorsize);
-	if (error != 0)
-		return (1);
-	buf = (u_char *)read_buf(fp, mediasize - sectorsize, sectorsize);
-	if (buf == NULL)
-		goto gelierr;
-	error = eli_metadata_decode(buf, &md);
-	if (error)
-		goto gelierr;
 
-	if (strcmp(md.md_magic, G_ELI_MAGIC) == 0) {
-		free(buf);
-		return (0);
-	}
+	vdev_phys = &(vdev_label->vl_vdev_phys);
 
-gelierr:
-	free(buf);
+	if ((nvlist_unpack(vdev_phys->vp_nvlist, sizeof(vdev_phys->vp_nvlist),
+	    &config, 0)) == 0 &&
+	    (nvlist_lookup_string(config, "name", &zpool_name) == 0)) {
+		strlcpy(label, zpool_name, labelsize);
+	} else
+		err = 1;
 
-	return (1);
+	nvlist_free(config);
+	free(vdev_label);
+
+	return (err);
 }
