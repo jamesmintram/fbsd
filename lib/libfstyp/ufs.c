@@ -33,15 +33,15 @@
 __FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
-//#include <ufs/ufs/dinode.h>
-//#include <ufs/ffs/fs.h>
+#include <ufs/ufs/dinode.h>
+#include <ufs/ffs/fs.h>
 
 #include "../../sys/ufs/ufs/dinode.h"
 #include "../../sys/ufs/ffs/fs.h"
 
 #include <errno.h>
 #include <libufs.h>
-//#include "../libufs/libufs.h"
+#include "../libufs/libufs.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,8 +49,6 @@ __FBSDID("$FreeBSD$");
 
 #include "fstyp.h"
 
-//TODO: Remove
-//#define	STDSB			-1	/* Fail if check-hash is bad */
 
 int
 fstyp_ufs(FILE *fp, char *label, size_t labelsize)
