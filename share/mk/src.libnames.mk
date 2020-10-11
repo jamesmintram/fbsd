@@ -271,6 +271,9 @@ _DP_edit=	ncursesw
 _DP_bsnmp=	crypto
 .endif
 _DP_fstyp=  geom md ufs
+.if ${MK_ZFS} != "no"
+_DP_fstyp+=	nvpair zfs spl
+.endif
 _DP_geom=	bsdxml sbuf
 _DP_cam=	sbuf
 _DP_kvm=	elf
