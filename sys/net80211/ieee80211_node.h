@@ -70,7 +70,7 @@ struct ieee80211vap;
 struct ieee80211_scanparams;
 
 /*
- * Information element ``blob''.  We use this structure
+ * Information element (IE) ``blob''.  We use this structure
  * to capture management frame payloads that need to be
  * retained.  Information elements within the payload that
  * we need to consult have references recorded.
@@ -479,7 +479,7 @@ int	ieee80211_iterate_nodes_vap(struct ieee80211_node_table *,
 void	ieee80211_iterate_nodes(struct ieee80211_node_table *,
 		ieee80211_iter_func *, void *);
 
-void	ieee80211_notify_erp(struct ieee80211com *);
+void	ieee80211_notify_erp_locked(struct ieee80211com *);
 void	ieee80211_dump_node(struct ieee80211_node_table *,
 		struct ieee80211_node *);
 void	ieee80211_dump_nodes(struct ieee80211_node_table *);

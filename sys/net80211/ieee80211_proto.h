@@ -286,7 +286,7 @@ struct ieee80211_wme_state {
 	u_int	wme_hipri_switch_thresh;/* aggressive mode switch thresh */
 	u_int	wme_hipri_switch_hysteresis;/* aggressive mode switch hysteresis */
 
-	struct wmeParams wme_params[4];		/* from assoc resp for each AC*/
+	struct wmeParams wme_params[WME_NUM_AC]; /* from assoc resp for each AC */
 	struct chanAccParams wme_wmeChanParams;	/* WME params applied to self */
 	struct chanAccParams wme_wmeBssChanParams;/* WME params bcast to stations */
 	struct chanAccParams wme_chanParams;	/* params applied to self */
@@ -303,6 +303,9 @@ void	ieee80211_wme_vap_getparams(struct ieee80211vap *vap,
 void	ieee80211_wme_ic_getparams(struct ieee80211com *ic,
 	    struct chanAccParams *);
 int	ieee80211_wme_vap_ac_is_noack(struct ieee80211vap *vap, int ac);
+void	ieee80211_vap_update_preamble(struct ieee80211vap *vap);
+void	ieee80211_vap_update_erp_protmode(struct ieee80211vap *vap);
+void	ieee80211_vap_update_ht_protmode(struct ieee80211vap *vap);
 
 /*
  * Return pointer to the QoS field from a Qos frame.

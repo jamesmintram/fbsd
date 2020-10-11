@@ -21,13 +21,6 @@ HAS_TESTS=
 SUBDIR.${MK_TESTS}+= tests
 .endif
 
-
-CFLAGS+=-I${SRCTOP}/sys
-
 LIBADD=	fstyp
-
-.if ${MK_ZFS} != "no"
-LIBADD+=nvpair zfs
-.endif
 
 .include <bsd.prog.mk>

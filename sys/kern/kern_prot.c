@@ -1381,7 +1381,7 @@ int
 cr_canseeothergids(struct ucred *u1, struct ucred *u2)
 {
 	int i, match;
-	
+
 	if (!see_other_gids) {
 		match = 0;
 		for (i = 0; i < u1->cr_ngroups; i++) {
@@ -1881,7 +1881,8 @@ crunuse(struct thread *td)
 {
 	struct ucred *cr, *crold;
 
-	cr = td->td_ucred;
+	MPASS(td->td_realucred == td->td_ucred);
+	cr = td->td_realucred;
 	mtx_lock(&cr->cr_mtx);
 	cr->cr_ref += td->td_ucredref;
 	td->td_ucredref = 0;
@@ -1897,6 +1898,7 @@ crunuse(struct thread *td)
 		crold = NULL;
 	}
 	mtx_unlock(&cr->cr_mtx);
+	td->td_realucred = NULL;
 	return (crold);
 }
 
@@ -1985,7 +1987,7 @@ crfree(struct ucred *cr)
 	struct thread *td;
 
 	td = curthread;
-	if (td->td_realucred == cr) {
+	if (__predict_true(td->td_realucred == cr)) {
 		KASSERT(cr->cr_users > 0, ("%s: users %d not > 0 on cred %p",
 		    __func__, cr->cr_users, cr));
 		td->td_ucredref--;
@@ -2225,7 +2227,7 @@ crsetgroups_locked(struct ucred *cr, int ngrp, gid_t *groups)
 	int i;
 	int j;
 	gid_t g;
-	
+
 	KASSERT(cr->cr_agroups >= ngrp, ("cr_ngroups is too small"));
 
 	bcopy(groups, cr->cr_groups, ngrp * sizeof(gid_t));

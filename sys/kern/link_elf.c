@@ -213,7 +213,6 @@ elf_set_add(struct elf_set_head *list, Elf_Addr start, Elf_Addr stop, Elf_Addr b
 	set->es_base = base;
 
 	TAILQ_FOREACH(iter, list, es_link) {
-
 		KASSERT((set->es_start < iter->es_start && set->es_stop < iter->es_stop) ||
 		    (set->es_start > iter->es_start && set->es_stop > iter->es_stop),
 		    ("linker sets intersection: to insert: 0x%jx-0x%jx; inserted: 0x%jx-0x%jx",
@@ -1107,7 +1106,8 @@ link_elf_load_file(linker_class_t cls, const char* filename,
 
 	ef = (elf_file_t) lf;
 #ifdef SPARSE_MAPPING
-	ef->object = vm_object_allocate(OBJT_PHYS, atop(mapsize));
+	ef->object = vm_pager_allocate(OBJT_PHYS, NULL, mapsize, VM_PROT_ALL,
+	    0, thread0.td_ucred);
 	if (ef->object == NULL) {
 		error = ENOMEM;
 		goto out;
@@ -1925,4 +1925,18 @@ link_elf_ireloc(caddr_t kmdp)
 	link_elf_preload_parse_symbols(ef);
 	relocate_file1(ef, elf_lookup_ifunc, elf_reloc, true);
 }
+
+#if defined(__aarch64__) || defined(__amd64__)
+void
+link_elf_late_ireloc(void)
+{
+	elf_file_t ef;
+
+	KASSERT(linker_kernel_file != NULL,
+	    ("link_elf_late_ireloc: No kernel linker file found"));
+	ef = (elf_file_t)linker_kernel_file;
+
+	relocate_file1(ef, elf_lookup_ifunc, elf_reloc_late, true);
+}
+#endif
 #endif

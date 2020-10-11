@@ -41,7 +41,6 @@ SUBDIR=	\
 	amr \
 	${_an} \
 	${_aout} \
-	${_apm} \
 	${_arcmsr} \
 	${_allwinner} \
 	${_armv8crypto} \
@@ -59,6 +58,8 @@ SUBDIR=	\
 	ath_rate \
 	ath_pci \
 	${_autofs} \
+	axgbe \
+	backlight \
 	${_bce} \
 	${_bcm283x_clkman} \
 	${_bcm283x_pwm} \
@@ -317,8 +318,10 @@ SUBDIR=	\
 	${_rtwnfw} \
 	${_s3} \
 	${_safe} \
+	safexcel \
 	${_sbni} \
 	scc \
+	${_sctp} \
 	sdhci \
 	${_sdhci_acpi} \
 	sdhci_pci \
@@ -343,6 +346,7 @@ SUBDIR=	\
 	${_sppp} \
 	ste \
 	stge \
+	${_sume} \
 	${_superio} \
 	${_sym} \
 	${_syscons} \
@@ -419,6 +423,12 @@ _ktls_ocf=	ktls_ocf
 SUBDIR+=	cuse
 .endif
 
+.if ${MK_EFI} != "no"
+.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64"
+_efirt=		efirt
+.endif
+.endif
+
 .if (${MK_INET_SUPPORT} != "no" || ${MK_INET6_SUPPORT} != "no") || \
 	defined(ALL_MODULES)
 _carp=		carp
@@ -429,6 +439,9 @@ _if_gre=	if_gre
 _ipfw_pmod=	ipfw_pmod
 .if ${KERN_OPTS:MIPSEC_SUPPORT} && !${KERN_OPTS:MIPSEC}
 _ipsec=		ipsec
+.endif
+.if ${KERN_OPTS:MSCTP_SUPPORT} || ${KERN_OPTS:MSCTP}
+_sctp=		sctp
 .endif
 .endif
 
@@ -552,7 +565,7 @@ _mpr=		mpr
 SUBDIR+=	tests
 .endif
 
-.if ${MK_ZFS} != "no" || defined(ALL_MODULES)
+.if ${MK_ZFS} != "no" || (defined(ALL_MODULES)  && ${MACHINE_CPUARCH} != "powerpc")
 SUBDIR+=	zfs
 .endif
 
@@ -580,7 +593,6 @@ _cxgb=		cxgb
 .if ${MACHINE_CPUARCH} == "aarch64"
 _allwinner=	allwinner
 _armv8crypto=	armv8crypto
-_efirt=		efirt
 _em=		em
 _rockchip=	rockchip
 .endif
@@ -702,7 +714,6 @@ _x86bios=	x86bios
 .if ${MACHINE_CPUARCH} == "amd64"
 _amdgpio=	amdgpio
 _ccp=		ccp
-_efirt=		efirt
 _iavf=		iavf
 _ioat=		ioat
 _ixl=		ixl
@@ -710,6 +721,7 @@ _nvdimm=	nvdimm
 _pms=		pms
 _qlxge=		qlxge
 _qlxgb=		qlxgb
+_sume=		sume
 _vmd=		vmd
 .if ${MK_SOURCELESS_UCODE} != "no"
 _qlxgbe=	qlxgbe
@@ -732,7 +744,6 @@ _vmm=		vmm
 # XXX some of these can move now, but are untested on other architectures.
 _3dfx=		3dfx
 _3dfx_linux=	3dfx_linux
-_apm=		apm
 .if ${MK_SOURCELESS_HOST} != "no"
 _ce=		ce
 .endif
@@ -746,7 +757,7 @@ _pst=		pst
 _sbni=		sbni
 .endif
 
-.if ${MACHINE_CPUARCH} == "arm"
+.if ${MACHINE_ARCH} == "armv7"
 _cfi=		cfi
 _cpsw=		cpsw
 .endif
@@ -768,12 +779,12 @@ _wi=		wi
 _virtio=	virtio
 .endif
 
-.if ${MACHINE_ARCH} == "powerpc64"
+.if ${MACHINE_ARCH:Mpowerpc64*} != ""
 _ipmi=		ipmi
 _ixl=		ixl
 _nvram=		opal_nvram
 .endif
-.if ${MACHINE_ARCH} == "powerpc64" || ${MACHINE_ARCH} == "powerpc"
+.if ${MACHINE_CPUARCH} == "powerpc" && ${MACHINE_ARCH} != "powerpcspe"
 # Don't build powermac_nvram for powerpcspe, it's never supported.
 _nvram+=	powermac_nvram
 .endif

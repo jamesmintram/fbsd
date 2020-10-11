@@ -109,8 +109,12 @@
 #include <ufs/ufs/ufsmount.h>
 #include <vm/uma.h>
 #include <vm/vm.h>
-#include <vm/vm_object.h>
+#include <vm/pmap.h>
 #include <vm/vm_extern.h>
+#include <vm/vm_object.h>
+#include <vm/vm_page.h>
+#include <vm/vm_pageout.h>
+#include <vm/vm_param.h>
 #include <nfs/nfssvc.h>
 #include "opt_nfs.h"
 #include "opt_ufs.h"
@@ -1051,6 +1055,7 @@ bool ncl_pager_setsize(struct vnode *vp, u_quad_t *nsizep);
 #define	NFSHASOPENMODE(n)	((n)->nm_state & NFSSTA_OPENMODE)
 #define	NFSHASONEOPENOWN(n)	(((n)->nm_flag & NFSMNT_ONEOPENOWN) != 0 &&	\
 				    (n)->nm_minorvers > 0)
+#define	NFSHASTLS(n)		(((n)->nm_newflag & NFSMNT_TLS) != 0)
 
 /*
  * Set boottime.

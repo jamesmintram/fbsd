@@ -320,6 +320,13 @@ cpu_startup(dummy)
 	cpu_setregs();
 }
 
+static void
+late_ifunc_resolve(void *dummy __unused)
+{
+	link_elf_late_ireloc();
+}
+SYSINIT(late_ifunc_resolve, SI_SUB_CPU, SI_ORDER_ANY, late_ifunc_resolve, NULL);
+
 /*
  * Send an interrupt to process.
  *
@@ -568,7 +575,7 @@ sys_sigreturn(td, uap)
 int
 freebsd4_sigreturn(struct thread *td, struct freebsd4_sigreturn_args *uap)
 {
- 
+
 	return sys_sigreturn(td, (struct sigreturn_args *)uap);
 }
 #endif
@@ -1555,6 +1562,8 @@ amd64_bsp_pcpu_init1(struct pcpu *pc)
 	PCPU_SET(ldt, (struct system_segment_descriptor *)&gdt[GUSERLDT_SEL]);
 	PCPU_SET(fs32p, &gdt[GUFS32_SEL]);
 	PCPU_SET(gs32p, &gdt[GUGS32_SEL]);
+	PCPU_SET(ucr3_load_mask, PMAP_UCR3_NOMASK);
+	PCPU_SET(smp_tlb_gen, 1);
 }
 
 void
@@ -1798,7 +1807,7 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	initializecpu();	/* Initialize CPU registers */
 
 	amd64_bsp_ist_init(pc);
-	
+
 	/* Set the IO permission bitmap (empty due to tss seg limit) */
 	pc->pc_common_tss.tss_iobase = sizeof(struct amd64tss) +
 	    IOPERM_BITMAP_SIZE;
@@ -1843,6 +1852,15 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 
 	if (late_console)
 		cninit();
+
+	/*
+	 * Dump the boot metadata. We have to wait for cninit() since console
+	 * output is required. If it's grossly incorrect the kernel will never
+	 * make it this far.
+	 */
+	if ((boothowto & RB_VERBOSE) &&
+	    getenv_is_true("debug.dump_modinfo_at_boot"))
+		preload_dump();
 
 #ifdef DEV_ISA
 #ifdef DEV_ATPIC
