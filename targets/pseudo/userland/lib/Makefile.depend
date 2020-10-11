@@ -68,7 +68,6 @@ DIRDEPS = \
 	lib/libexecinfo \
 	lib/libexpat \
 	lib/libfetch \
-	lib/libfstyp \
 	lib/libfigpar \
 	lib/libgeom \
 	lib/libgssapi \

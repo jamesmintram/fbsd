@@ -24,8 +24,7 @@ SUBDIR.${MK_TESTS}+= tests
 
 CFLAGS+=-I${SRCTOP}/sys
 
-#TODO: Can we remove ufs here - should be transitively added
-LIBADD=	ufs fstyp
+LIBADD=	fstyp
 
 .if ${MK_ZFS} != "no"
 LIBADD+=nvpair zfs
